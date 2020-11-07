@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+    <routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Webapi:etc/webapi.xsd">
+    <route method="POST" url="/V1/domitai/generate-payment">
+        <service class="Domitai\PaymentGateway\Api\CustomInterface" method="getPost"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route method="POST" url="/V1/domitai/get-order-status">
+        <service class="Domitai\PaymentGateway\Api\StatusInterface" method="getStatus"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+    <route method="POST" url="/V1/domitai/domitai-payment">
+        <service class="Domitai\PaymentGateway\Api\EndpointDomitaiInterface" method="setPayment"/>
+        <resources>
+            <resource ref="anonymous"/>
+        </resources>
+    </route>
+</routes>

@@ -1,0 +1,388 @@
+<?php 
+	$qr = array();
+	$isValid = true;
+	$status = 'processing';
+	if(isset($_COOKIE['QrInformation'])){
+		$serverName = '';
+		if (isset($_SERVER['HTTPS']) && ($_SERVER['HTTPS'] == 'on' || $_SERVER['HTTPS'] == 1) || isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') $serverName = 'https://';
+		else $serverName = 'http://';
+		$serverName.= $_SERVER['SERVER_NAME'];
+		$array = json_decode($_COOKIE['QrInformation'],true);
+		$postFieldsString = array("value" => $array['id']);
+		
+		$ch = curl_init();
+		curl_setopt($ch,CURLOPT_URL,"$serverName/rest/all/V1/domitai/generate-payment");
+		curl_setopt($ch, CURLOPT_POST, TRUE);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $postFieldsString);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch,CURLOPT_HTTPHEADER,array(
+			"Content-Type: multipart/form-data"
+		));
+		$response = curl_exec($ch);
+		curl_close($ch);
+		$todo = json_decode($response,true);
+		$status = $todo['status'];
+		if(count($todo['codes']) > 0){
+			$qr = $todo['codes'];
+		}
+		
+	}else $isValid = false;
+
+	
+?> 
+<?php if($isValid) {
+	?>
+	<style>
+.selected{
+	background: #1B5F93!important;
+}
+.buttonCoin{
+	border-radius: 10px;
+    border: none;
+    outline: none;
+    position: relative;
+    text-align: center;
+    font-weight: bold;
+    background: transparent;
+    height: 45px;
+	width:45px;
+    color: white;
+	margin: 0 7px;
+    box-shadow:none!important;
+    padding:0;
+}
+.sidebarButton{
+	color: #fff;
+    background: #2A8AD5;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    outline: none;
+	display:none;
+}
+
+.addressPay{
+	background: transparent;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+	border-radius: 10px;
+	padding: 5px 10px;
+    text-align: center;
+ }
+ .addressPay:hover{
+	background: #2A8AC0!important;
+    color: white;
+ }
+ .icons_coins{
+	 width:20px!important;
+	 position: absolute;
+     left: 5px;
+     top: 5px;
+ }
+ .imageGeneral {
+	 padding:0!important;
+	display:initial!important;
+	background:transparent!important;
+	border:none!important;
+	width:100px;
+ }
+ .container_plugin{
+	 background-color:#F3F3F3;
+	 border-radius: 10px;
+    margin-top: 30px;
+ }
+ #content_qr{
+	 display: flex;
+    margin: 0 auto;
+	padding: 30px 0;
+ }
+ #first_title{
+	text-align: center;
+    font-weight: bold;
+    padding-top: 40px;
+	padding-bottom:20px;
+ }
+
+ #side_bar{
+	text-align: center;
+    width: 100%;
+    padding: 5px 0;
+    background: #2A8AD5;
+    border-radius: 10px;
+ }
+ #qrContent{
+	 text-align:center;
+	 width: 100%;
+ }
+ .qrClass{
+	 display: flex;
+ }
+ .qrClass > div{
+	 width: 47%;
+    background: white;
+    border-radius: 10px;
+    margin: 0 auto;
+	padding: 30px 0;
+ }
+ .subtitle{
+	 font-weight: bold;
+    color: #2A8AD5;
+ }
+ #side_bar > div{
+	 margin: 40px 0;
+ }
+ .qr_images{
+	display:initial;
+	width: 180px;
+	-webkit-box-shadow: 0px 23px 45px -28px rgba(0,0,0,0.75);
+	-moz-box-shadow: 0px 23px 45px -28px rgba(0,0,0,0.75);
+	box-shadow: 0px 23px 45px -28px rgba(0,0,0,0.75);
+    border-radius: 10px;
+ }
+ .buttonCoin:hover,.buttonCoin:focus {
+    border:none
+ }
+ 
+ .currencyText{
+	 padding-top: 10px;
+    font-size: 20px;
+ }
+ #open_wallet{
+	background: #23a1d1;
+    display: block;
+    margin: 0 auto;
+    color: white;
+    width: 120px;
+    font-size: 12px;
+    padding: 5px 0;
+    font-weight: bold;
+    border-radius: 20px;
+    height: 20px;
+ }
+ #icon{
+	 position: absolute;
+    background: #008AD5;
+    height: 24px;
+    left: -40px;
+    top: -3px;
+    padding: 6px 0;
+    width: 35px;
+    border-radius: 10px;
+ }
+ #container_code{
+	 position:relative;
+	 margin: 0 auto;
+    width: 65%;
+ }
+ @media (max-width: 720px) {
+	 .qrClass{
+		 display:initial;
+	 }
+	 #first_title{
+		 font-size:25px;
+	 }
+
+	 .qrClass > div{
+		 width:90%;
+		 margin-bottom:15px;
+	 }
+	 .buttonCoin{
+		 margin:0 auto;
+		width:85%;
+	 }
+	 #side_bar{
+		 position:absolute;
+		 height:300px;
+		 overflow:scroll;
+	 }
+	 .sidebarButton{
+		 display:inherit;
+	 }
+	 .display_bar{
+		 display:none;
+	 }
+ }
+
+</style>
+<div class="container_plugin">
+	<h1 id="first_title"><?=__('cripto_title')?></h1>
+	<div style="margin:0 auto;width:85%;position:relative">
+	<input type="hidden"  id="success_text_1" value="<?=__('success_text_1')?>" />
+	<input type="hidden"  id="success_text_2" value="<?=__('success_text_2')?>" />
+	<input type="hidden"  id="cancel_text" value="<?=__('cancel_text')?>" />
+	<?php if($status == 'processing'){ ?>
+		<button class="sidebarButton">☰</button>
+		<div id="side_bar" class="display_bar">
+			
+			<?php foreach($qr as $index => $currency): ?>
+				<button class="buttonCoin <?=$index == 0?'selected':''?>">
+					<img style="width:30px" src="https://domitai.com/assets/img/coins/<?=$currency['currency']?>.png">
+				</button>	
+			<?php endforeach; ?> 	
+		</div>
+	<?php } ?>
+		
+	<div id="content_qr">
+		<div id="qrContent">
+			<?php if($status == 'processing'){?>
+				<?php foreach($qr as $index => $currency): ?>				
+					<div class="qrClass" style="<?=$index == 0 ?'':'display:none'?>">
+							<div>
+								<h3 class="subtitle"><?=$currency['name']?></h3>
+								<br>
+								<img class="imageGeneral" src="https://domitai.com/assets/img/coins/<?=$currency['currency']?>.png">
+								<h5 class="subtitle currencyText"><?=$currency['currency']?></h5>
+								<br>
+								<h5 style="font-size:20px"><?=__('equivalent')?>:</h5>
+								<h3 style="font-weight: bold;font-size: 30px;">$<?=$currency['amount']?></h3>
+								<br><br>
+								<a id="open_wallet" href="<?=$currency['uri']?>"><?=__('wallet_text')?></a>
+							</div>
+							<div>
+								<h3 class="subtitle"><?=__('address')?></h3>
+								<br>
+									<h3 style="font-size: 15px;margin:0"><?=__('qr_text_1')?> <span class="subtitle"><?=__('qr_text_2')?></span><?=__('qr_text_3')?></h3>
+								<br>
+								<img class="qr_images" src="<?=$currency['qr']?>" alt="No se puede mostrar qr">
+								<br><br><br>
+								<div id="container_code">
+									<div id="icon">
+										<svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+											<g clip-path="url(#clip0)">
+											<path d="M16.5882 7.52942H9.17646C8.26682 7.52942 7.5294 8.26683 7.5294 9.17648V16.5882C7.5294 17.4979 8.26682 18.2353 9.17646 18.2353H16.5882C17.4979 18.2353 18.2353 17.4979 18.2353 16.5882V9.17648C18.2353 8.26683 17.4979 7.52942 16.5882 7.52942Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+											<path d="M4.23529 12.4707H3.41176C2.97493 12.4707 2.556 12.2971 2.24711 11.9882C1.93823 11.6794 1.7647 11.2604 1.7647 10.8236V3.41183C1.7647 2.975 1.93823 2.55607 2.24711 2.24718C2.556 1.9383 2.97493 1.76477 3.41176 1.76477H10.8235C11.2604 1.76477 11.6793 1.9383 11.9882 2.24718C12.2971 2.55607 12.4706 2.975 12.4706 3.41183V4.23536" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+											</g>
+											<defs>
+											<clipPath id="clip0">
+											<rect x="0.117645" y="0.117676" width="19.7647" height="19.7647" fill="white"></rect>
+											</clipPath>
+											</defs>
+										</svg>
+									</div>
+									<input class="addressPay" type="text" value="<?=$currency['address']?>" readonly="">
+								</div>
+							</div>
+					</div>
+				<?php endforeach; ?>
+			<?php }else if($status == 'pending_payment'){ ?>
+				<h1><?=__('success_text_1')?></h1>
+			<?php }else if($status == 'complete'){ ?>
+				<h1><?=__('success_text_2')?></h1>
+			<?php }else if($status == 'canceled'){ ?>
+				<h1><?=__('cancel_text')?></h1>
+			<?php } ?> 
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+    document.title = "Domitai Payment";
+    let sideButton = document.querySelector(".sidebarButton");
+    let sideBarId = document.querySelector("#side_bar");
+    let buttonsCoin = document.querySelectorAll(".buttonCoin");
+    let qrClass = document.querySelectorAll(".qrClass");
+    buttonsCoin[0].classList.add("selected");
+    qrClass[0].removeAttribute("style");
+    	
+    sideButton.addEventListener("click",() => {
+        if(sideBarId.classList.contains("display_bar")) sideBarId.classList.remove("display_bar")
+		else sideBarId.classList.add("display_bar");
+    })
+
+    const inputAddress = document.querySelectorAll(".addressPay");
+	inputAddress.forEach(element => {
+		element.addEventListener("focus",() => {
+			let selBox = document.createElement('textarea');
+			selBox.style.position = 'fixed';
+			selBox.style.left = '0';
+			selBox.style.top = '0';
+			selBox.style.opacity = '0';
+			selBox.value = element.value;
+			document.body.appendChild(selBox);
+			selBox.focus();
+			selBox.select();
+			document.execCommand('copy');
+			document.body.removeChild(selBox);
+			alert("Copiado")
+		})
+    })
+    
+    const buttons = document.getElementsByClassName('buttonCoin');
+	for( let i = 0;i<buttons.length;i++){
+		buttons[i].addEventListener("click",() => {
+			let count = 0;
+			for (let qr of qrClass ) {
+				qr.setAttribute("style","display:none");
+				buttons[count].classList.remove("selected");
+				count++;
+			}
+			qrClass[i].removeAttribute("style");
+			buttons[i].classList.add("selected");
+			let width = window.screen.width;
+			if(width <= 720) sideBarId.classList.add("display_bar");
+		});
+	}
+
+	const intervalD = setInterval(getStatusWithInterval,10000);
+	const sideBar = document.getElementById('side_bar');
+	function getStatusWithInterval(){
+		let qrContent = document.getElementById("qrContent");
+		let h1 = document.createElement("h1");
+		let {id} = JSON.parse(getCookie('QrInformation'));
+		let value= "";
+		if(id) {
+			fetch("/rest/all/V1/domitai/get-order-status",{
+				method:"POST",
+				headers:{
+					'Content-type':'application/json'
+				},
+				body: JSON.stringify({value:id})
+			}).then((resp) => resp.json()).then((json) => {
+				if(json.status === "pending_payment"){
+					qrContent.innerHTML=""; 
+					sideBar.remove(); 
+					value = document.querySelector("#success_text_1").value;
+					h1.innerHTML = value;
+					qrContent.appendChild(h1);
+				}else if(json.status === "canceled"){
+					qrContent.innerHTML=""; 	 
+					sideBar.remove();
+					value = document.querySelector("#cancel_text").value;
+					h1.innerHTML = value;
+					qrContent.appendChild(h1);
+					stopInterval();
+				}else if(json.status === "complete"){
+					qrContent.innerHTML=""; 
+					sideBar.remove();
+					value = document.querySelector("#success_text_2").value;
+					h1.innerHTML = value;
+					qrContent.appendChild(h1);
+					stopInterval();
+				}
+			});
+		}else stopInterval();
+	}
+
+	function stopInterval() {
+  		clearInterval(intervalD);
+	}
+
+	function getCookie(name) {
+    	const cookieArr = document.cookie.split(";");
+		for(let i = 0; i < cookieArr.length; i++) {
+			let cookiePair = cookieArr[i].split("=");
+			if(name == cookiePair[0].trim()) {
+				return decodeURIComponent(cookiePair[1]);
+			}
+		}
+		return null;
+	}
+</script>	
+	
+<?php 
+} else { ?>
+	<h1><?=__('time_expire')?></h1>
+<?php
+
+} ?>
